@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/router";
+
 
 
 type VideoRow = {
@@ -25,9 +27,25 @@ function getYouTubeId(url: string) {
   }
 }
 
+//state to store the videos and error
 export default function VideosPage() {
   const [videos, setVideos] = useState<VideoRow[]>([]);
   const [error, setError] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    async function guard() {
+      const { data } = await supabase.auth.getUser();
+  
+      if (!data.user) {
+        router.replace("/login");
+        return;
+      }
+    }
+  
+    guard();
+  }, [router]);
+  
 
   useEffect(() => {
 
@@ -52,15 +70,16 @@ export default function VideosPage() {
   }, []);
 
   return (
-    <main style={{ padding: 24 }}>
+    <main className="p-6">
     
-      <h1>Videos</h1>
+      <h1 className="text-2xl font-bold">Videos </h1>
 
       
-      {error && <p style={{ color: "red" }}>ERROR: {error}</p>}
+      {error && <p className="text-red-600 mb-4">ERROR: {error}</p>}
 
       
-      <div style={{ display: "grid", gap: 16 }}>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
         
         {videos.map((video) => {
           
@@ -77,21 +96,15 @@ export default function VideosPage() {
           return (
             <div
               key={video.id}
-              style={{
-                border: "1px solid #333",
-                padding: 12,
-              }}
+                className="border border-grey-300 rounded-lg p-3 bg-black"
+              
             >
               <p>{video.title}</p>
         
               <iframe
                 src={`https://www.youtube.com/embed/${id}`}
                 title={video.title}
-                style={{
-                  width: "100%",
-                  aspectRatio: "16 / 9",
-                  border: 0,
-                }}
+                className="w-full aspect-video border-0 rounded-md"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
